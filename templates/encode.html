@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Encode</title>
+    <link rel="stylesheet" href="static/style.css">
+    <style>
+        .file-upload-container {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .file-upload-container.dragging {
+            border-color: #007bff;
+        }
+
+        #file-upload-label {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        #file-preview {
+            max-width: 200px;
+            max-height: 200px;
+            display: none;
+            margin: 10px auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Encode</h1>
+
+        {% if error %}
+        <p class="error">{{ error }}</p>
+        {% endif %}
+
+        <form method="POST" enctype="multipart/form-data" action="/encode" id="encode-form">
+            <div class="file-upload-container" id="file-upload-area">
+                <label for="image" id="file-upload-label">Drag & Drop or Click to Upload Image (JPG, JPEG, PNG)</label>
+                <input type="file" name="image" id="image" accept="image/jpeg, image/png" style="display: none;" required>
+                <img id="file-preview" src="#" alt="Preview">
+            </div>
+
+            <label for="message">Message:</label><br>
+            <textarea name="message" required></textarea><br>
+            <label for="password">Password:</label><br>
+            <input type="password" name="password" required><br>
+            <label for="filename">Save As (Filename):</label><br>
+            <input type="text" name="filename" id="filename" placeholder="encrypted_image" required><br>
+
+
+            <input type="submit" value="Encode" class="submit-button">
+
+            
+        </form>
+
+        {% if encrypted_image %}
+        <div class="result">
+            <p>Encrypted image saved as: {{ encrypted_image }}</p>
+        </div>
+        {% endif %}
+        <a href="/" class="back-button">Back to Welcome</a>
+    </div>
+
+    <script>
+        const filename = document.getElementById('filename');
+        const fileUploadArea = document.getElementById('file-upload-area');
+        const fileInput = document.getElementById('image');
+        const filePreview = document.getElementById('file-preview');
+        const fileUploadLabel = document.getElementById('file-upload-label');
+        const form = document.getElementById('encode-form');
+
+        fileUploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', () => {
+            previewFile();
+        });
+
+        fileUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileUploadArea.classList.add('dragging');
+        });
+
+        fileUploadArea.addEventListener('dragleave', () => {
+            fileUploadArea.classList.remove('dragging');
+        });
+
+        fileUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileUploadArea.classList.remove('dragging');
+            fileInput.files = e.dataTransfer.files;
+            previewFile();
+        });
+
+        function previewFile() {
+            const file = fileInput.files[0];
+            if (file && (file.type === 'image/jpeg' || file.type === 'image/png')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    filePreview.src = e.target.result;
+                    filePreview.style.display = 'block';
+                    fileUploadLabel.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                filePreview.style.display = 'none';
+                fileUploadLabel.style.display = 'block';
+                fileInput.value = '';
+            }
+        }
+
+        form.addEventListener('submit', (e) => {
+            const file = fileInput.files[0];
+            if (!file || (file.type !== 'image/jpeg' && file.type !== 'image/png')) {
+                e.preventDefault();
+                alert('Please upload a valid JPEG, or PNG image.');
+            }
+        });
+    </script>
+</body>
+</html>

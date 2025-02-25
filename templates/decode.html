@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Decode</title>
+    <link rel="stylesheet" href="static/style.css">
+    <style>
+        .file-upload-container {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .file-upload-container.dragging {
+            border-color: #007bff;
+        }
+
+        #file-upload-label {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        #file-preview {
+            max-width: 200px;
+            max-height: 200px;
+            display: none;
+            margin: 10px auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Decode</h1>
+
+        {% if error %}
+        <p class="error">{{ error }}</p>
+        {% endif %}
+
+        <form method="POST" enctype="multipart/form-data" action="/decode" id="decode-form">
+            <div class="file-upload-container" id="file-upload-area">
+                <label for="image" id="file-upload-label">Drag & Drop or Click to Upload Encrypted Image</label>
+                <input type="file" name="image" id="image" accept="image/png "  style="display: none;" required>
+                <img id="file-preview" src="#" alt="Preview">
+            </div>
+
+            <label for="password">Password:</label><br>
+            <input type="password" name="password" id="password" required><br><br>
+
+            <input type="submit" value="Decode" class="submit-button">
+        </form>
+
+        {% if decrypted_message %}
+        <div class="result">
+            <p>Decrypted message: {{ decrypted_message }}</p>
+        </div>
+        {% endif %}
+        <a href="/" class="back-button">Back to Welcome</a>
+    </div>
+
+
+    <script>
+        const fileUploadArea = document.getElementById('file-upload-area');
+        const fileInput = document.getElementById('image');
+        const filePreview = document.getElementById('file-preview');
+        const fileUploadLabel = document.getElementById('file-upload-label');
+        const form = document.getElementById('decode-form');
+        
+        
+        fileUploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', () => {
+            previewFile();
+        });
+
+        fileUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileUploadArea.classList.add('dragging');
+        });
+
+        fileUploadArea.addEventListener('dragleave', () => {
+            fileUploadArea.classList.remove('dragging');
+        });
+
+        fileUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileUploadArea.classList.remove('dragging');
+            fileInput.files = e.dataTransfer.files;
+            previewFile();
+        });
+
+        function previewFile() {
+            const file = fileInput.files[0];
+            if (file && file.type === 'image/png') {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    filePreview.src = e.target.result;
+                    filePreview.style.display = 'block';
+                    fileUploadLabel.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                filePreview.style.display = 'none';
+                fileUploadLabel.style.display = 'block';
+                fileInput.value = '';
+            }
+        }
+
+        form.addEventListener('submit', (e) => {
+            const file = fileInput.files[0];
+            if (!file || file.type !== 'image/png') {
+                e.preventDefault();
+                alert('Please upload a valid PNG image.');
+            }
+        });
+    </script>
+</body>
+</html>
